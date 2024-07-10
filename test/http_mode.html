@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.5.0/axios.min.js"
+    integrity="sha512-aoTNnqZcT8B4AmeCFmiSnDlc4Nj/KPaZyB5G7JnOnUEkdNpCZs1LCankiYi01sLTyWy+m2P+W4XM+BuQ3Q4/Dg=="
+    crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <!-- <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous"> -->
+  <!-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script> -->
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+  <script src="./socketio.js"></script>
+  <title>test</title>
+</head>
+
+<body>
+  <div id="app">
+    BASE_URL:<input type="text" v-model="apiUrl" placeholder="BASE_URL" style="width: 200px;"><input type="text"
+      v-model="user_token" placeholder="user_token" style="width: 200px;"> <br>
+    <!-- <input type="button" value="connect" :disabled="is_connect_disabled" @click="onconnect"><br>   -->
+    w:<input type="text" v-model="w" placeholder="w" style="width: 20px;">
+    h:<input type="text" v-model="h" placeholder="h" style="width: 20px;">
+    diamonds:<input type="text" v-model="diamonds" placeholder="diamonds" style="width: 20px;">
+    <input type="button" value="create_game" @click="create_game"><br>
+    copy game_id and connect: <input type="text" v-model="game_id" placeholder="game_id"><input type="button"
+      value="CONNECT" @click="onconnect"><br>
+    <div>
+      <p>diamonds: {{diamonds}}</p>
+      <p>p1: {{p1}}</p>
+      <p>p2: {{p2}}</p>
+      <p>p1_d: {{p1_d}}</p>
+      <p>p2_d: {{p2_d}}</p>
+      <p>state: {{state}}</p>
+      <p>winner: {{winner}}</p>
+      <p>user_token: {{user_token}}</p>
+    </div>
+    <div :style="' overflow: scroll; display: grid; grid-template-columns: repeat('+w+', 1fr);'">
+
+      <div v-for="item,i in opened_map" :key="'it'+Math.random()">
+
+        <input v-if="item==='x'" type="button" value="x" @click="openCell(i)" style="max-width: 20px;">
+        <input v-if="item!=='x'" type="text" :value="item" :disabled="true" style="max-width: 20px;">
+      </div>
+    </div>
+    <!-- <div>winner: {{state.winner}}</div>
+    <div>winner: {{state}}</div>
+    <br><input type="button" value="bet 10" :disabled="false" @click="onbet">
+    <br><input type="button" value="move 1" :disabled="false" @click="onmove">
+    <br><input type="button" value="info" :disabled="false" @click="oninfo">
+    <br><input type="button" value="cells" :disabled="false" @click="oncells"> -->
+  </div>
+
+  <script>
+    const { createApp, ref } = Vue
+    createApp({
+      async mounted() {
+        setInterval(async () => {
+          try {
+            let res1 = await axios({
+              method: 'get',
+              url: this.apiUrl + '/api/v1/game/info',
+              headers: {
+                'Authorization': this.user_token,
+              },
+              params: {
+                id: this.game_id
+              }
+            })
+            this.renderInfo(res1.data.data)
+          } catch (error) {
+
+          }
+        }, 1000)
+
+
+      },
+      methods: {
+
+
+        renderInfo(info) {
+          // info: {
+          //   "id": "",
+          //   "state": "wait",
+          //   "players": [],
+          //   "diamonds_collected": [
+          //     0,
+          //     0
+          //   ],
+          //   "winner": "",
+          //   "opened_map": [],
+
+          // },
+          this.game_id = info.id
+          this.p1 = info.players[0]
+          this.p2 = info.players[1]
+          this.p1_d = info.diamonds_collected[0]
+          this.p2_d = info.diamonds_collected[1]
+          this.state = info.state
+          this.winner = info.winner
+          this.opened_map.splice(0, this.opened_map.length)
+          for (let i of info.opened_map)
+            this.opened_map.push(i)
+        },
+        async onconnect() {
+          console.log(`onconnect ---`)
+          let res1 = await axios({
+            method: 'get',
+            url: this.apiUrl + '/api/v1/game/connect',
+            headers: {
+              'Authorization': this.user_token,
+            },
+            params: {
+              id: this.game_id
+            }
+            // data: {
+            //   "w": this.w,
+            //   "h": this.h,
+            //   "diamonds": this.diamonds
+            // },
+          })
+          this.renderInfo(res1.data.data)
+        },
+        async create_game() {
+          let res1 = await axios({
+            method: 'post',
+            url: this.apiUrl + '/api/v1/game/create',
+            headers: {
+              'Authorization': this.user_token,
+            },
+            data: {
+              "w": this.w,
+              "h": this.h,
+              "diamonds": this.diamonds
+            },
+          })
+          this.renderInfo(res1.data.data)
+        },
+        // },
+        async openCell(cell) {
+          let res1 = await axios({
+            method: 'post',
+            url: this.apiUrl + '/api/v1/game/open_cell',
+            headers: {
+              'Authorization': this.user_token,
+            },
+            data: {
+              "game_id": this.game_id,
+              "cell": cell
+            },
+          })
+          this.renderInfo(res1.data.data)
+        },
+
+
+      },
+      data() {
+        return {
+          w: 6,
+          h: 6,
+          diamonds: 9,
+          apiUrl: 'http://0.0.0.0:3001',
+          is_connect_disabled: false,
+          user_token: '',
+          game_id: '',
+          // 
+          p1: '',
+          p2: '',
+          p1_d: '',
+          p2_d: '',
+          state: '',
+          opened_map: [],
+          winner: '',
+          user_token: 'user_001',
+
+        }
+      }
+    }).mount('#app')
+  </script>
+</body>
+
+</html>

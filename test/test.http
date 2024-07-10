@@ -1,0 +1,53 @@
+@URL=http://0.0.0.0:3001
+
+
+
+###
+# @name createdgame
+POST {{URL}}/api/v1/game/create
+Content-Type: application/json
+
+{
+    "w": 5,
+    "h":10,
+    "diamonds":15
+}
+
+###
+GET  {{URL}}/api/v1/game/info?id={{createdgame.response.body.data.id}}
+Content-Type: application/json
+Authorization: user_001
+
+
+###
+GET  {{URL}}/api/v1/game/connect?id={{createdgame.response.body.data.id}}
+Content-Type: application/json
+Authorization: user_001
+
+
+###
+GET  {{URL}}/api/v1/game/connect?id={{createdgame.response.body.data.id}}
+Content-Type: application/json
+Authorization: user_002
+
+###
+# @name cell_1
+POST {{URL}}/api/v1/game/open_cell
+Content-Type: application/json
+Authorization: user_001
+
+{
+    "game_id":"{{createdgame.response.body.data.id}}",
+    "cell":2
+}
+
+###
+# @name cell_2
+POST {{URL}}/api/v1/game/open_cell
+Content-Type: application/json
+Authorization: user_002
+
+{
+    "game_id":"{{createdgame.response.body.data.id}}",
+    "cell":2
+}

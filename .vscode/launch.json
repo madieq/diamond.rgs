@@ -1,0 +1,37 @@
+{
+	// Используйте IntelliSense, чтобы узнать о возможных атрибутах.
+	// Наведите указатель мыши, чтобы просмотреть описания существующих атрибутов.
+	// Для получения дополнительной информации посетите: https://go.microsoft.com/fwlink/?linkid=830387
+	"version": "0.2.0",
+	"configurations": [
+		{
+			"type": "pwa-node",
+			"request": "launch",
+			"name": "RUN",
+			"skipFiles": [
+				"<node_internals>/**"
+			],
+			"env": {
+				"UV_THREADPOOL_SIZE": "128",
+				"NODE_ENV": "development"
+			},
+			"program": "${workspaceFolder}/src/main.ts",
+			"outFiles": [
+				"!**/node_modules/**",
+				"${workspaceFolder}/dist/**/*.js"
+			],
+		},
+		{
+			"address": "0.0.0.0",
+			"localRoot": "${workspaceFolder}",
+			"name": "Attach to Remote",
+			"port": 9229,
+			"remoteRoot": "Absolute path to the remote directory containing the program",
+			"request": "attach",
+			"skipFiles": [
+				"<node_internals>/**"
+			],
+			"type": "node"
+		}
+	]
+}
